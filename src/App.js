@@ -11,7 +11,6 @@ import {
   Gift,
   Disc,
   LogIn,
-  ArrowUp,
 } from "lucide-react";
 
 // Segédfüggvény a scriptek betöltéséhez
@@ -36,7 +35,6 @@ export default function App() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [html5QrcodeScanner, setHtml5QrcodeScanner] = useState(null);
   const [scanError, setScanError] = useState("");
-  const [showHint, setShowHint] = useState(false); // Tipp megjelenítése
 
   // Kártya készítő állapota
   const [inputUrl, setInputUrl] = useState("");
@@ -65,7 +63,6 @@ export default function App() {
   const startScanner = () => {
     setScannerActive(true);
     setScanError("");
-    setShowHint(false);
 
     setTimeout(() => {
       try {
@@ -133,13 +130,6 @@ export default function App() {
     );
   };
 
-  const handlePlayClick = () => {
-    // Mivel nem tudjuk szoftveresen elindítani, megmutatjuk, hova kell kattintani
-    setShowHint(true);
-    // 3 másodperc múlva eltüntetjük a jelet
-    setTimeout(() => setShowHint(false), 3000);
-  };
-
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden font-sans selection:bg-orange-500 selection:text-white">
       {/* Stílusok */}
@@ -162,17 +152,6 @@ export default function App() {
         .animate-spin-slow { animation: spin 8s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .click-through { pointer-events: none; }
-        
-        /* Villogó keret animáció */
-        @keyframes pulse-border {
-          0% { border-color: rgba(34, 197, 94, 0.5); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-          70% { border-color: rgba(34, 197, 94, 1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-          100% { border-color: rgba(34, 197, 94, 0.5); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-        .hint-active {
-          animation: pulse-border 1.5s infinite;
-          border: 2px solid #22c55e;
-        }
       `}</style>
 
       {/* Háttér */}
@@ -320,11 +299,7 @@ export default function App() {
               </div>
             ) : (
               <>
-                <div
-                  className={`relative w-full aspect-[4/5] max-h-[500px] bg-[#121212] rounded-[40px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group ${
-                    showHint ? "hint-active" : ""
-                  }`}
-                >
+                <div className="relative w-full aspect-[4/5] max-h-[500px] bg-[#121212] rounded-[40px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group">
                   {currentTrack ? (
                     <>
                       {/* SPOTIFY IFRAME */}
@@ -339,10 +314,9 @@ export default function App() {
                           className="absolute inset-0 w-full h-full opacity-100 z-10"
                         ></iframe>
 
-                        {/* HOMÁLYOSÍTÓ RÉTEG - MÓDOSÍTVA: Csak a felső részt takarja! */}
+                        {/* HOMÁLYOSÍTÓ RÉTEG - MÓDOSÍTVA: bottom-24 helyett bottom-40 (kb. 160px) */}
                         {!isRevealed && (
-                          <div className="absolute top-0 left-0 right-0 bottom-24 bg-black/95 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center border-b-2 border-green-500/50 shadow-2xl">
-                            {/* Ez a réteg blokkolja a címet és a borítót */}
+                          <div className="absolute top-0 left-0 right-0 bottom-40 bg-black/95 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center border-b-2 border-green-500/50 shadow-2xl">
                             <div className="bg-white/10 p-4 rounded-full mb-4">
                               <Music
                                 size={40}
@@ -355,21 +329,14 @@ export default function App() {
                             <p className="text-gray-400 text-sm">
                               A borító és a cím titkos!
                             </p>
-
-                            {/* Segítő nyíl */}
-                            {showHint && (
-                              <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center animate-bounce text-green-400">
-                                <p className="text-xs font-bold uppercase mb-1">
-                                  Itt indítsd el!
-                                </p>
-                                <ArrowUp size={24} className="rotate-180" />
-                              </div>
-                            )}
+                            <p className="text-green-500 text-xs font-bold mt-4 uppercase animate-bounce">
+                              ↓ Nyomj a Play gombra lent! ↓
+                            </p>
                           </div>
                         )}
                       </div>
 
-                      {/* VEZÉRLŐK (Csak a leleplezés gomb maradt itt) */}
+                      {/* VEZÉRLŐK */}
                       <div className="p-6 bg-[#181818] z-30 border-t border-white/5">
                         {!isRevealed ? (
                           <button
@@ -419,16 +386,6 @@ export default function App() {
                       className="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white font-bold text-lg py-4 rounded-full shadow-lg shadow-orange-500/20 flex items-center justify-center gap-3 transform transition active:scale-95 hover:shadow-orange-500/40"
                     >
                       <Camera size={24} strokeWidth={2.5} /> BEOLVASÁS
-                    </button>
-                  )}
-
-                  {/* A kért "ZENE INDÍTÁSA" gomb */}
-                  {currentTrack && !isRevealed && (
-                    <button
-                      onClick={handlePlayClick}
-                      className="w-full bg-green-600 text-white font-bold text-lg py-4 rounded-full shadow-lg shadow-green-500/30 flex items-center justify-center gap-3 transform transition active:scale-95"
-                    >
-                      <Play size={24} fill="white" /> ZENE INDÍTÁSA
                     </button>
                   )}
 
