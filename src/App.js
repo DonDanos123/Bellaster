@@ -155,7 +155,7 @@ export default function App() {
             </div>
           </div>
           <h1 className="text-6xl font-black mb-2 tracking-tighter text-white drop-shadow-lg">
-            HIT<span className="text-orange-500">STER</span>
+            BELLA<span className="text-orange-500">STER</span>
           </h1>
           <p className="text-gray-400 mb-16 text-lg font-light tracking-[0.2em] uppercase">
             Szülinapi Kiadás
