@@ -10,6 +10,7 @@ import {
   X,
   Gift,
   Disc,
+  LogIn,
 } from "lucide-react";
 
 // Segédfüggvény a scriptek betöltéséhez
@@ -76,12 +77,16 @@ export default function App() {
             (decodedText) => {
               const trackId = extractSpotifyId(decodedText);
               if (trackId) {
+                // AZONNAL bezárjuk a felületet, hogy ne ragadjon be a fekete képernyő
+                setScannerActive(false);
                 setCurrentTrack(trackId);
                 setIsRevealed(false);
-                scanner.stop().then(() => {
-                  scanner.clear();
-                  setScannerActive(false);
-                });
+
+                // A háttérben takarítunk
+                scanner
+                  .stop()
+                  .then(() => scanner.clear())
+                  .catch(console.error);
               }
             },
             (errorMessage) => {}
@@ -96,16 +101,14 @@ export default function App() {
   };
 
   const stopScanner = () => {
+    setScannerActive(false); // Azonnali bezárás UI szinten
     if (html5QrcodeScanner) {
       html5QrcodeScanner
         .stop()
         .then(() => {
           html5QrcodeScanner.clear();
-          setScannerActive(false);
         })
         .catch(console.error);
-    } else {
-      setScannerActive(false);
     }
   };
 
@@ -123,18 +126,35 @@ export default function App() {
     }
   };
 
+  const handleSpotifyLogin = () => {
+    window.open(
+      "https://accounts.spotify.com/login?continue=https://open.spotify.com",
+      "_blank"
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden font-sans selection:bg-orange-500 selection:text-white">
       {/* Stílusok */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        
+        /* JAVÍTÁS: Eltünteti a fehér csíkokat (overscroll) és feketére állítja a mögöttes hátteret */
+        html, body {
+          margin: 0;
+          padding: 0;
+          background-color: #0a0a0a; /* Sötét háttér a fehér helyett */
+          overscroll-behavior: none; /* Letiltja a rugózást */
+          height: 100%;
+        }
+
         body { font-family: 'Inter', sans-serif; }
+        
         .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .glass-button { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.2s ease; }
         .glass-button:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
         .animate-spin-slow { animation: spin 8s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        /* Fontos: kattintás átengedése */
         .click-through { pointer-events: none; }
       `}</style>
 
@@ -148,18 +168,19 @@ export default function App() {
       {/* --- HOME VIEW --- */}
       {view === "home" && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center z-10 relative">
-          <div className="mb-10 relative">
+          <div className="mb-8 relative">
             <div className="absolute inset-0 bg-orange-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
             <div className="relative bg-gradient-to-tr from-gray-800 to-black p-8 rounded-full border border-gray-700 shadow-2xl">
               <Disc size={64} className="text-orange-500 animate-spin-slow" />
             </div>
           </div>
-          <h1 className="text-6xl font-black mb-2 tracking-tighter text-white drop-shadow-lg">
-            BELLA<span className="text-orange-500">STER</span>
+          <h1 className="text-5xl font-black mb-2 tracking-tighter text-white drop-shadow-lg">
+            BELL<span className="text-orange-500">ASTER</span>
           </h1>
-          <p className="text-gray-400 mb-16 text-lg font-light tracking-[0.2em] uppercase">
+          <p className="text-gray-400 mb-12 text-lg font-light tracking-[0.2em] uppercase">
             Szülinapi Kiadás
           </p>
+
           <div className="w-full max-w-xs space-y-4">
             <button
               onClick={() => setView("game")}
@@ -167,9 +188,21 @@ export default function App() {
             >
               <Play size={28} className="fill-white" /> JÁTÉK INDÍTÁSA
             </button>
+
+            <button
+              onClick={handleSpotifyLogin}
+              className="glass-button w-full text-green-400 font-semibold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide border-green-500/30"
+            >
+              <LogIn size={18} /> SPOTIFY CSATLAKOZÁS
+            </button>
+            <p className="text-[10px] text-gray-500 max-w-[250px] mx-auto leading-tight">
+              A teljes dalok lejátszásához egyszer be kell jelentkezned a
+              böngészőben.
+            </p>
+
             <button
               onClick={() => setView("creator")}
-              className="glass-button w-full text-white font-semibold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide"
+              className="glass-button w-full text-white font-semibold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide mt-4"
             >
               <Printer size={18} /> KÁRTYÁK KÉSZÍTÉSE
             </button>
@@ -214,7 +247,7 @@ export default function App() {
               />
               <a
                 href={generatedQR}
-                download="hitster_qr.png"
+                download="bellaster_qr.png"
                 target="_blank"
                 rel="noreferrer"
                 className="bg-black text-white px-8 py-3 rounded-full text-sm font-bold flex items-center gap-2 hover:bg-gray-800"
@@ -273,7 +306,7 @@ export default function App() {
                 <div className="relative w-full aspect-[4/5] max-h-[500px] bg-[#121212] rounded-[40px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group">
                   {currentTrack ? (
                     <>
-                      {/* SPOTIFY IFRAME - Most már mindig kattintható! */}
+                      {/* SPOTIFY IFRAME */}
                       <div className="flex-1 relative w-full h-full bg-black">
                         <iframe
                           src={`https://open.spotify.com/embed/track/${currentTrack}?utm_source=generator&theme=0`}
@@ -285,7 +318,7 @@ export default function App() {
                           className="absolute inset-0 w-full h-full opacity-100 z-10"
                         ></iframe>
 
-                        {/* HOMÁLYOSÍTÓ RÉTEG - KULCS: pointer-events-none (click-through) */}
+                        {/* HOMÁLYOSÍTÓ RÉTEG */}
                         {!isRevealed && (
                           <div className="click-through absolute inset-0 bg-black/60 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center">
                             <div className="animate-pulse bg-white/10 p-4 rounded-full mb-4">
