@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Camera,
   Play,
@@ -12,7 +12,7 @@ import {
   Disc,
 } from "lucide-react";
 
-// Segédfüggvény a scriptek (QR olvasó, Tailwind) betöltéséhez
+// Segédfüggvény a scriptek betöltéséhez
 const loadScript = (src) => {
   return new Promise((resolve, reject) => {
     if (document.querySelector(`script[src="${src}"]`)) {
@@ -40,26 +40,18 @@ export default function App() {
   const [generatedQR, setGeneratedQR] = useState(null);
 
   useEffect(() => {
-    // 1. Betöltjük a html5-qrcode könyvtárat a kamera használathoz
+    // Könyvtárak betöltése
     loadScript("https://unpkg.com/html5-qrcode").catch(console.error);
-
-    // 2. AUTOMATIKUSAN betöltjük a Tailwind CSS-t is, hogy szép legyen,
-    // akkor is, ha nincs beállítva a CodeSandbox-ban.
     loadScript("https://cdn.tailwindcss.com").catch(console.error);
   }, []);
 
-  // Spotify URL tisztítása ID kinyeréséhez
+  // Spotify URL tisztítása
   const extractSpotifyId = (url) => {
     try {
       if (!url) return null;
-      if (url.includes("spotify:track:")) {
-        return url.split(":")[2];
-      }
-      if (url.includes("open.spotify.com/track/")) {
-        const parts = url.split("/track/")[1].split("?")[0];
-        return parts;
-      }
-      // Ha csak simán az ID-t írta be (22 karakter)
+      if (url.includes("spotify:track:")) return url.split(":")[2];
+      if (url.includes("open.spotify.com/track/"))
+        return url.split("/track/")[1].split("?")[0];
       if (url.length === 22) return url;
       return null;
     } catch (e) {
@@ -71,12 +63,10 @@ export default function App() {
     setScannerActive(true);
     setScanError("");
 
-    // Kis késleltetés, hogy a HTML elem létrejöjjön
     setTimeout(() => {
       try {
         const scanner = new window.Html5Qrcode("reader");
         setHtml5QrcodeScanner(scanner);
-
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
         scanner
@@ -84,7 +74,6 @@ export default function App() {
             { facingMode: "environment" },
             config,
             (decodedText) => {
-              // SIKERES OLVASÁS
               const trackId = extractSpotifyId(decodedText);
               if (trackId) {
                 setCurrentTrack(trackId);
@@ -93,21 +82,15 @@ export default function App() {
                   scanner.clear();
                   setScannerActive(false);
                 });
-              } else {
-                // Ha a QR kód nem spotify link
               }
             },
-            (errorMessage) => {
-              // Scannelés közben futó hibák (nem kritikus)
-            }
+            (errorMessage) => {}
           )
           .catch((err) => {
-            setScanError(
-              "Nem sikerült elindítani a kamerát. Engedélyezd a hozzáférést a böngészőben!"
-            );
+            setScanError("Engedélyezd a kamerát!");
           });
       } catch (err) {
-        setScanError("Hiba a szkenner betöltésekor. Frissítsd az oldalt!");
+        setScanError("Hiba a szkennernél. Frissíts!");
       }
     }, 100);
   };
@@ -136,67 +119,33 @@ export default function App() {
         )}`
       );
     } else {
-      alert("Ez nem tűnik érvényes Spotify linknek!");
+      alert("Rossz Spotify link!");
     }
   };
 
-  // --- STÍLUS ÉS HTML ---
-
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden font-sans selection:bg-orange-500 selection:text-white">
-      {/* Google Font betöltése és Globális Stílusok */}
+      {/* Stílusok */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
-        
-        body {
-          font-family: 'Inter', sans-serif;
-        }
-
-        .glass-panel {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .glass-button {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          transition: all 0.2s ease;
-        }
-        .glass-button:active {
-          transform: scale(0.95);
-          background: rgba(255, 255, 255, 0.15);
-        }
-
-        .animate-spin-slow {
-          animation: spin 8s linear infinite;
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        
-        .bg-glow {
-          position: absolute;
-          width: 300px;
-          height: 300px;
-          background: radial-gradient(circle, rgba(249,115,22,0.4) 0%, rgba(0,0,0,0) 70%);
-          filter: blur(40px);
-          z-index: 0;
-          pointer-events: none;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glass-button { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.2s ease; }
+        .glass-button:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
+        .animate-spin-slow { animation: spin 8s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* Fontos: kattintás átengedése */
+        .click-through { pointer-events: none; }
       `}</style>
 
-      {/* Háttér effekt */}
-      <div className="bg-glow top-0 left-[-100px] animate-pulse"></div>
+      {/* Háttér */}
+      <div className="absolute top-0 left-[-100px] w-[300px] h-[300px] bg-orange-500/40 blur-[40px] animate-pulse pointer-events-none"></div>
       <div
-        className="bg-glow bottom-0 right-[-100px] bg-[radial-gradient(circle,_rgba(236,72,153,0.3)_0%,_rgba(0,0,0,0)_70%)] animate-pulse"
+        className="absolute bottom-0 right-[-100px] w-[300px] h-[300px] bg-pink-500/30 blur-[40px] animate-pulse pointer-events-none"
         style={{ animationDelay: "1s" }}
       ></div>
 
-      {/* --- KEZDŐKÉPERNYŐ --- */}
+      {/* --- HOME VIEW --- */}
       {view === "home" && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center z-10 relative">
           <div className="mb-10 relative">
@@ -205,14 +154,12 @@ export default function App() {
               <Disc size={64} className="text-orange-500 animate-spin-slow" />
             </div>
           </div>
-
           <h1 className="text-6xl font-black mb-2 tracking-tighter text-white drop-shadow-lg">
-            BELLA<span className="text-orange-500">STER</span>
+            HIT<span className="text-orange-500">STER</span>
           </h1>
           <p className="text-gray-400 mb-16 text-lg font-light tracking-[0.2em] uppercase">
             Szülinapi Kiadás
           </p>
-
           <div className="w-full max-w-xs space-y-4">
             <button
               onClick={() => setView("game")}
@@ -220,7 +167,6 @@ export default function App() {
             >
               <Play size={28} className="fill-white" /> JÁTÉK INDÍTÁSA
             </button>
-
             <button
               onClick={() => setView("creator")}
               className="glass-button w-full text-white font-semibold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide"
@@ -231,7 +177,7 @@ export default function App() {
         </div>
       )}
 
-      {/* --- KÁRTYA KÉSZÍTŐ --- */}
+      {/* --- CREATOR VIEW --- */}
       {view === "creator" && (
         <div className="flex-1 flex flex-col items-center p-6 z-10 overflow-y-auto w-full max-w-md mx-auto">
           <button
@@ -240,21 +186,18 @@ export default function App() {
           >
             <RotateCcw size={14} /> VISSZA
           </button>
-
           <h2 className="text-3xl font-black mb-2 text-white">KÁRTYA GYÁR</h2>
           <p className="text-sm text-gray-400 mb-10 text-center leading-relaxed">
             Másold be a Spotify linket, és mentsd le a generált kódot.
           </p>
-
           <div className="w-full glass-panel p-6 rounded-3xl space-y-4 mb-8">
             <input
               type="text"
-              placeholder="Spotify Link (pl. https://open.spotify.com...)"
-              className="w-full p-4 rounded-xl bg-black/50 border border-gray-700 text-white focus:outline-none focus:border-orange-500 transition-colors placeholder-gray-600"
+              placeholder="Spotify Link..."
+              className="w-full p-4 rounded-xl bg-black/50 border border-gray-700 text-white focus:outline-none focus:border-orange-500 transition-colors"
               value={inputUrl}
               onChange={(e) => setInputUrl(e.target.value)}
             />
-
             <button
               onClick={generateQRCode}
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2"
@@ -262,15 +205,13 @@ export default function App() {
               <Gift size={20} /> GENERÁLÁS
             </button>
           </div>
-
           {generatedQR && (
             <div className="bg-white p-6 rounded-3xl flex flex-col items-center shadow-2xl w-full animate-in slide-in-from-bottom-10 fade-in duration-500">
-              <div className="bg-white p-2 border-4 border-black mb-4 rounded-xl">
-                <img src={generatedQR} alt="QR Code" className="w-48 h-48" />
-              </div>
-              <p className="text-black text-center font-bold text-sm mb-4">
-                NYOMTASD KI EZT A KÉPET!
-              </p>
+              <img
+                src={generatedQR}
+                alt="QR Code"
+                className="w-48 h-48 mb-4 border-4 border-black rounded-xl"
+              />
               <a
                 href={generatedQR}
                 download="hitster_qr.png"
@@ -285,10 +226,9 @@ export default function App() {
         </div>
       )}
 
-      {/* --- JÁTÉK MÓD --- */}
+      {/* --- GAME VIEW --- */}
       {view === "game" && (
         <>
-          {/* Játék Fejléc */}
           <div className="p-6 flex justify-between items-center z-20 w-full max-w-md mx-auto">
             <button
               onClick={() => setView("home")}
@@ -303,34 +243,24 @@ export default function App() {
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center p-4 w-full max-w-md mx-auto z-10 relative">
-            {/* SZKENNER OVERLAY */}
             {scannerActive ? (
               <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
                 <h3 className="text-white text-2xl font-bold mb-8 tracking-tight">
                   KÓD KERESÉSE...
                 </h3>
-
                 <div className="relative w-full max-w-xs aspect-square overflow-hidden rounded-[30px] border-4 border-white/10 shadow-2xl bg-black">
                   <div
                     id="reader"
                     className="w-full h-full object-cover opacity-80"
                   ></div>
-
-                  {/* Animált szkennelő csík */}
                   <div className="absolute top-0 left-0 w-full h-1 bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.8)] animate-[scan_2s_infinite_linear]"></div>
                   <style>{`@keyframes scan { 0% {top: 0} 50% {top: 100%} 100% {top: 0} }`}</style>
                 </div>
-
-                {scanError ? (
-                  <p className="text-red-400 mt-8 text-center text-sm bg-red-900/20 p-4 rounded-xl border border-red-500/30">
+                {scanError && (
+                  <p className="text-red-400 mt-8 text-center text-sm">
                     {scanError}
                   </p>
-                ) : (
-                  <p className="mt-8 text-gray-500 text-sm tracking-widest uppercase">
-                    Irányítsd a kamerát a kártyára
-                  </p>
                 )}
-
                 <button
                   onClick={stopScanner}
                   className="mt-12 glass-button px-10 py-3 rounded-full text-white font-bold tracking-wide text-sm"
@@ -340,11 +270,10 @@ export default function App() {
               </div>
             ) : (
               <>
-                {/* ZENE LEJÁTSZÓ KÁRTYA */}
                 <div className="relative w-full aspect-[4/5] max-h-[500px] bg-[#121212] rounded-[40px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group">
                   {currentTrack ? (
                     <>
-                      {/* Spotify Embed - iframe */}
+                      {/* SPOTIFY IFRAME - Most már mindig kattintható! */}
                       <div className="flex-1 relative w-full h-full bg-black">
                         <iframe
                           src={`https://open.spotify.com/embed/track/${currentTrack}?utm_source=generator&theme=0`}
@@ -353,45 +282,42 @@ export default function App() {
                           frameBorder="0"
                           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                           loading="lazy"
-                          className="absolute inset-0 w-full h-full opacity-100" // Opacity full, a fedés takar
+                          className="absolute inset-0 w-full h-full opacity-100 z-10"
                         ></iframe>
 
-                        {/* TAKARÁS / HOMÁLYOSÍTÁS */}
+                        {/* HOMÁLYOSÍTÓ RÉTEG - KULCS: pointer-events-none (click-through) */}
                         {!isRevealed && (
-                          <div className="absolute inset-0 bg-black/40 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center">
-                            <div className="w-32 h-32 bg-gradient-to-tr from-gray-800 to-black rounded-full shadow-2xl flex items-center justify-center mb-8 border border-white/10 animate-spin-slow">
-                              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center border border-white/10">
-                                <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
-                              </div>
+                          <div className="click-through absolute inset-0 bg-black/60 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center">
+                            <div className="animate-pulse bg-white/10 p-4 rounded-full mb-4">
+                              <Play
+                                size={40}
+                                className="text-white fill-white"
+                              />
                             </div>
-
-                            <h3 className="text-2xl font-black text-white mb-2 tracking-tight">
-                              REJTETT DAL
+                            <h3 className="text-xl font-bold text-white mb-2">
+                              Nyomj a gombra!
                             </h3>
-                            <p className="text-gray-400 mb-8 font-medium text-sm">
-                              Indítsd el a lejátszást lent!
+                            <p className="text-gray-300 text-sm font-medium">
+                              A zene indításához nyomj a háttérben lévő homályos
+                              Play gombra.
                             </p>
-
-                            <div className="glass-panel px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-[0.2em] text-orange-400">
-                              Ne csalj!
-                            </div>
                           </div>
                         )}
                       </div>
 
-                      {/* Vezérlők */}
+                      {/* VEZÉRLŐK */}
                       <div className="p-6 bg-[#181818] z-30 border-t border-white/5">
                         {!isRevealed ? (
                           <button
                             onClick={() => setIsRevealed(true)}
-                            className="w-full bg-white text-black font-black text-lg py-4 rounded-2xl shadow-lg shadow-white/5 flex items-center justify-center gap-3 hover:bg-gray-200 transition-colors"
+                            className="w-full bg-white text-black font-black text-lg py-4 rounded-2xl shadow-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-3"
                           >
-                            LELEPLEZÉS <Check size={24} strokeWidth={3} />
+                            LELEPLEZÉS <Check size={24} />
                           </button>
                         ) : (
                           <div className="text-center animate-in slide-in-from-bottom-4 fade-in duration-500">
-                            <p className="text-green-400 font-bold mb-4 text-xl tracking-tight">
-                              Helyes volt a tipp?
+                            <p className="text-green-400 font-bold mb-4 text-xl">
+                              Ez volt a helyes válasz?
                             </p>
                             <button
                               onClick={() => {
@@ -407,7 +333,6 @@ export default function App() {
                       </div>
                     </>
                   ) : (
-                    /* Üres állapot (Placeholder) */
                     <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-gradient-to-b from-[#181818] to-black">
                       <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-700 flex items-center justify-center mb-6 opacity-50">
                         <Camera size={32} className="text-gray-500" />
@@ -421,8 +346,6 @@ export default function App() {
                     </div>
                   )}
                 </div>
-
-                {/* Fő akciógomb */}
                 {!scannerActive && !currentTrack && (
                   <button
                     onClick={startScanner}
@@ -431,8 +354,6 @@ export default function App() {
                     <Camera size={24} strokeWidth={2.5} /> BEOLVASÁS
                   </button>
                 )}
-
-                {/* Újra olvasás gomb, ha hiba van */}
                 {currentTrack && !isRevealed && (
                   <button
                     onClick={() => {
