@@ -11,6 +11,7 @@ import {
   Gift,
   Disc,
   LogIn,
+  ArrowUp,
 } from "lucide-react";
 
 // Segédfüggvény a scriptek betöltéséhez
@@ -35,6 +36,7 @@ export default function App() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [html5QrcodeScanner, setHtml5QrcodeScanner] = useState(null);
   const [scanError, setScanError] = useState("");
+  const [showHint, setShowHint] = useState(false); // Tipp megjelenítése
 
   // Kártya készítő állapota
   const [inputUrl, setInputUrl] = useState("");
@@ -63,6 +65,7 @@ export default function App() {
   const startScanner = () => {
     setScannerActive(true);
     setScanError("");
+    setShowHint(false);
 
     setTimeout(() => {
       try {
@@ -77,12 +80,9 @@ export default function App() {
             (decodedText) => {
               const trackId = extractSpotifyId(decodedText);
               if (trackId) {
-                // AZONNAL bezárjuk a felületet, hogy ne ragadjon be a fekete képernyő
                 setScannerActive(false);
                 setCurrentTrack(trackId);
                 setIsRevealed(false);
-
-                // A háttérben takarítunk
                 scanner
                   .stop()
                   .then(() => scanner.clear())
@@ -101,7 +101,7 @@ export default function App() {
   };
 
   const stopScanner = () => {
-    setScannerActive(false); // Azonnali bezárás UI szinten
+    setScannerActive(false);
     if (html5QrcodeScanner) {
       html5QrcodeScanner
         .stop()
@@ -133,18 +133,24 @@ export default function App() {
     );
   };
 
+  const handlePlayClick = () => {
+    // Mivel nem tudjuk szoftveresen elindítani, megmutatjuk, hova kell kattintani
+    setShowHint(true);
+    // 3 másodperc múlva eltüntetjük a jelet
+    setTimeout(() => setShowHint(false), 3000);
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden font-sans selection:bg-orange-500 selection:text-white">
       {/* Stílusok */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
         
-        /* JAVÍTÁS: Eltünteti a fehér csíkokat (overscroll) és feketére állítja a mögöttes hátteret */
         html, body {
           margin: 0;
           padding: 0;
-          background-color: #0a0a0a; /* Sötét háttér a fehér helyett */
-          overscroll-behavior: none; /* Letiltja a rugózást */
+          background-color: #0a0a0a;
+          overscroll-behavior: none;
           height: 100%;
         }
 
@@ -156,6 +162,17 @@ export default function App() {
         .animate-spin-slow { animation: spin 8s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .click-through { pointer-events: none; }
+        
+        /* Villogó keret animáció */
+        @keyframes pulse-border {
+          0% { border-color: rgba(34, 197, 94, 0.5); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+          70% { border-color: rgba(34, 197, 94, 1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+          100% { border-color: rgba(34, 197, 94, 0.5); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        .hint-active {
+          animation: pulse-border 1.5s infinite;
+          border: 2px solid #22c55e;
+        }
       `}</style>
 
       {/* Háttér */}
@@ -175,7 +192,7 @@ export default function App() {
             </div>
           </div>
           <h1 className="text-5xl font-black mb-2 tracking-tighter text-white drop-shadow-lg">
-            BELL<span className="text-orange-500">ASTER</span>
+            BELLA<span className="text-orange-500">STER</span>
           </h1>
           <p className="text-gray-400 mb-12 text-lg font-light tracking-[0.2em] uppercase">
             Szülinapi Kiadás
@@ -303,7 +320,11 @@ export default function App() {
               </div>
             ) : (
               <>
-                <div className="relative w-full aspect-[4/5] max-h-[500px] bg-[#121212] rounded-[40px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group">
+                <div
+                  className={`relative w-full aspect-[4/5] max-h-[500px] bg-[#121212] rounded-[40px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group ${
+                    showHint ? "hint-active" : ""
+                  }`}
+                >
                   {currentTrack ? (
                     <>
                       {/* SPOTIFY IFRAME */}
@@ -318,27 +339,37 @@ export default function App() {
                           className="absolute inset-0 w-full h-full opacity-100 z-10"
                         ></iframe>
 
-                        {/* HOMÁLYOSÍTÓ RÉTEG */}
+                        {/* HOMÁLYOSÍTÓ RÉTEG - MÓDOSÍTVA: Csak a felső részt takarja! */}
                         {!isRevealed && (
-                          <div className="click-through absolute inset-0 bg-black/60 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center">
-                            <div className="animate-pulse bg-white/10 p-4 rounded-full mb-4">
-                              <Play
+                          <div className="absolute top-0 left-0 right-0 bottom-24 bg-black/95 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center border-b-2 border-green-500/50 shadow-2xl">
+                            {/* Ez a réteg blokkolja a címet és a borítót */}
+                            <div className="bg-white/10 p-4 rounded-full mb-4">
+                              <Music
                                 size={40}
-                                className="text-white fill-white"
+                                className="text-white animate-pulse"
                               />
                             </div>
                             <h3 className="text-xl font-bold text-white mb-2">
-                              Nyomj a gombra!
+                              Rejtett Dal
                             </h3>
-                            <p className="text-gray-300 text-sm font-medium">
-                              A zene indításához nyomj a háttérben lévő homályos
-                              Play gombra.
+                            <p className="text-gray-400 text-sm">
+                              A borító és a cím titkos!
                             </p>
+
+                            {/* Segítő nyíl */}
+                            {showHint && (
+                              <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center animate-bounce text-green-400">
+                                <p className="text-xs font-bold uppercase mb-1">
+                                  Itt indítsd el!
+                                </p>
+                                <ArrowUp size={24} className="rotate-180" />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
 
-                      {/* VEZÉRLŐK */}
+                      {/* VEZÉRLŐK (Csak a leleplezés gomb maradt itt) */}
                       <div className="p-6 bg-[#181818] z-30 border-t border-white/5">
                         {!isRevealed ? (
                           <button
@@ -379,25 +410,40 @@ export default function App() {
                     </div>
                   )}
                 </div>
-                {!scannerActive && !currentTrack && (
-                  <button
-                    onClick={startScanner}
-                    className="mt-8 w-full max-w-[280px] bg-gradient-to-r from-orange-500 to-pink-600 text-white font-bold text-lg py-4 rounded-full shadow-lg shadow-orange-500/20 flex items-center justify-center gap-3 transform transition active:scale-95 hover:shadow-orange-500/40"
-                  >
-                    <Camera size={24} strokeWidth={2.5} /> BEOLVASÁS
-                  </button>
-                )}
-                {currentTrack && !isRevealed && (
-                  <button
-                    onClick={() => {
-                      setCurrentTrack(null);
-                      startScanner();
-                    }}
-                    className="mt-6 text-gray-500 hover:text-white text-[10px] uppercase tracking-widest font-bold flex items-center gap-2 py-2 opacity-60 hover:opacity-100 transition-opacity"
-                  >
-                    <RotateCcw size={12} /> Nem indul? Újraolvasás
-                  </button>
-                )}
+
+                {/* ÚJ GOMBOK A KÁRTYA ALATT */}
+                <div className="w-full mt-4 space-y-3">
+                  {!scannerActive && !currentTrack && (
+                    <button
+                      onClick={startScanner}
+                      className="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white font-bold text-lg py-4 rounded-full shadow-lg shadow-orange-500/20 flex items-center justify-center gap-3 transform transition active:scale-95 hover:shadow-orange-500/40"
+                    >
+                      <Camera size={24} strokeWidth={2.5} /> BEOLVASÁS
+                    </button>
+                  )}
+
+                  {/* A kért "ZENE INDÍTÁSA" gomb */}
+                  {currentTrack && !isRevealed && (
+                    <button
+                      onClick={handlePlayClick}
+                      className="w-full bg-green-600 text-white font-bold text-lg py-4 rounded-full shadow-lg shadow-green-500/30 flex items-center justify-center gap-3 transform transition active:scale-95"
+                    >
+                      <Play size={24} fill="white" /> ZENE INDÍTÁSA
+                    </button>
+                  )}
+
+                  {currentTrack && !isRevealed && (
+                    <button
+                      onClick={() => {
+                        setCurrentTrack(null);
+                        startScanner();
+                      }}
+                      className="w-full text-gray-500 hover:text-white text-[10px] uppercase tracking-widest font-bold flex items-center justify-center gap-2 py-2 opacity-60 hover:opacity-100 transition-opacity"
+                    >
+                      <RotateCcw size={12} /> Újraolvasás
+                    </button>
+                  )}
+                </div>
               </>
             )}
           </div>
