@@ -335,7 +335,7 @@ export default function App() {
 
                         {/* HOMÁLYOSÍTÓ RÉTEG - IGAZI BLUR ÉS FELJEBB VIVE */}
                         {!isRevealed && (
-                          <div className="absolute top-0 left-0 right-0 bottom-[170px] bg-black/40 backdrop-blur-3xl z-20 flex flex-col items-center justify-center p-8 text-center border-b-2 border-green-500/50 shadow-2xl">
+                          <div className="absolute top-0 left-0 right-0 bottom-[155px] bg-black/40 backdrop-blur-3xl z-20 flex flex-col items-center justify-center p-8 text-center border-b-2 border-green-500/50 shadow-2xl">
                             <div className="bg-white/10 p-4 rounded-full mb-4">
                               <Music
                                 size={40}
