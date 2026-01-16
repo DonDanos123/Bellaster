@@ -131,7 +131,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden font-sans selection:bg-orange-500 selection:text-white">
+    <div className="h-screen w-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden font-sans selection:bg-orange-500 selection:text-white">
       {/* Stílusok */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
@@ -140,8 +140,11 @@ export default function App() {
           margin: 0;
           padding: 0;
           background-color: #0a0a0a;
-          overscroll-behavior: none;
+          overscroll-behavior: none; /* Letiltja a rugózást */
+          overflow: hidden; /* Letiltja a görgetést */
           height: 100%;
+          width: 100%;
+          position: fixed; /* Rögzíti a nézetet */
         }
 
         body { font-family: 'Inter', sans-serif; }
@@ -163,7 +166,7 @@ export default function App() {
 
       {/* --- HOME VIEW --- */}
       {view === "home" && (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center z-10 relative">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center z-10 relative h-full">
           <div className="mb-8 relative">
             <div className="absolute inset-0 bg-orange-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
             <div className="relative bg-gradient-to-tr from-gray-800 to-black p-8 rounded-full border border-gray-700 shadow-2xl">
@@ -173,11 +176,11 @@ export default function App() {
           <h1 className="text-5xl font-black mb-2 tracking-tighter text-white drop-shadow-lg">
             BELLA<span className="text-orange-500">STER</span>
           </h1>
-          <p className="text-gray-400 mb-12 text-lg font-light tracking-[0.2em] uppercase">
+          <p className="text-gray-400 mb-8 text-lg font-light tracking-[0.2em] uppercase">
             Szülinapi Kiadás
           </p>
 
-          <div className="w-full max-w-xs space-y-4">
+          <div className="w-full max-w-xs space-y-3">
             <button
               onClick={() => setView("game")}
               className="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white font-bold py-5 px-8 rounded-2xl shadow-xl shadow-orange-900/50 transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-3 text-lg"
@@ -198,7 +201,7 @@ export default function App() {
 
             <button
               onClick={() => setView("creator")}
-              className="glass-button w-full text-white font-semibold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide mt-4"
+              className="glass-button w-full text-white font-semibold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide mt-2"
             >
               <Printer size={18} /> KÁRTYÁK KÉSZÍTÉSE
             </button>
@@ -208,7 +211,7 @@ export default function App() {
 
       {/* --- CREATOR VIEW --- */}
       {view === "creator" && (
-        <div className="flex-1 flex flex-col items-center p-6 z-10 overflow-y-auto w-full max-w-md mx-auto">
+        <div className="flex-1 flex flex-col items-center p-6 z-10 overflow-y-auto w-full max-w-md mx-auto h-full">
           <button
             onClick={() => setView("home")}
             className="self-start mb-8 text-gray-400 hover:text-white flex items-center gap-2 font-medium glass-button px-4 py-2 rounded-full text-xs"
@@ -258,10 +261,10 @@ export default function App() {
       {/* --- GAME VIEW --- */}
       {view === "game" && (
         <>
-          <div className="p-6 flex justify-between items-center z-20 w-full max-w-md mx-auto">
+          <div className="p-4 flex justify-between items-center z-20 w-full max-w-md mx-auto">
             <button
               onClick={() => setView("home")}
-              className="glass-button p-3 rounded-full text-white/80 hover:text-white"
+              className="glass-button p-2 rounded-full text-white/80 hover:text-white"
             >
               <X size={20} />
             </button>
@@ -271,7 +274,7 @@ export default function App() {
             <div className="w-10"></div>
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center p-4 w-full max-w-md mx-auto z-10 relative">
+          <div className="flex-1 flex flex-col items-center justify-center p-4 w-full max-w-md mx-auto z-10 relative h-full max-h-[85vh]">
             {scannerActive ? (
               <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
                 <h3 className="text-white text-2xl font-bold mb-8 tracking-tight">
@@ -299,7 +302,7 @@ export default function App() {
               </div>
             ) : (
               <>
-                <div className="relative w-full aspect-[4/5] max-h-[500px] bg-[#121212] rounded-[40px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group">
+                <div className="relative w-full h-full max-h-[65vh] bg-[#121212] rounded-[30px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group">
                   {currentTrack ? (
                     <>
                       {/* SPOTIFY IFRAME */}
@@ -314,9 +317,9 @@ export default function App() {
                           className="absolute inset-0 w-full h-full opacity-100 z-10"
                         ></iframe>
 
-                        {/* HOMÁLYOSÍTÓ RÉTEG - MÓDOSÍTVA: bottom-24 helyett bottom-40 (kb. 160px) */}
+                        {/* HOMÁLYOSÍTÓ RÉTEG - IGAZI BLUR ÉS FELJEBB VIVE */}
                         {!isRevealed && (
-                          <div className="absolute top-0 left-0 right-0 bottom-40 bg-black/95 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center border-b-2 border-green-500/50 shadow-2xl">
+                          <div className="absolute top-0 left-0 right-0 bottom-[170px] bg-black/40 backdrop-blur-3xl z-20 flex flex-col items-center justify-center p-8 text-center border-b-2 border-green-500/50 shadow-2xl">
                             <div className="bg-white/10 p-4 rounded-full mb-4">
                               <Music
                                 size={40}
@@ -326,7 +329,7 @@ export default function App() {
                             <h3 className="text-xl font-bold text-white mb-2">
                               Rejtett Dal
                             </h3>
-                            <p className="text-gray-400 text-sm">
+                            <p className="text-gray-300 text-sm">
                               A borító és a cím titkos!
                             </p>
                             <p className="text-green-500 text-xs font-bold mt-4 uppercase animate-bounce">
@@ -337,7 +340,7 @@ export default function App() {
                       </div>
 
                       {/* VEZÉRLŐK */}
-                      <div className="p-6 bg-[#181818] z-30 border-t border-white/5">
+                      <div className="p-4 bg-[#181818] z-30 border-t border-white/5 shrink-0">
                         {!isRevealed ? (
                           <button
                             onClick={() => setIsRevealed(true)}
@@ -347,7 +350,7 @@ export default function App() {
                           </button>
                         ) : (
                           <div className="text-center animate-in slide-in-from-bottom-4 fade-in duration-500">
-                            <p className="text-green-400 font-bold mb-4 text-xl">
+                            <p className="text-green-400 font-bold mb-2 text-xl">
                               Ez volt a helyes válasz?
                             </p>
                             <button
@@ -379,7 +382,7 @@ export default function App() {
                 </div>
 
                 {/* ÚJ GOMBOK A KÁRTYA ALATT */}
-                <div className="w-full mt-4 space-y-3">
+                <div className="w-full mt-4 space-y-2 shrink-0">
                   {!scannerActive && !currentTrack && (
                     <button
                       onClick={startScanner}
