@@ -40,6 +40,9 @@ export default function App() {
   const [inputUrl, setInputUrl] = useState("");
   const [generatedQR, setGeneratedQR] = useState(null);
 
+  // TITKOS SZÁMLÁLÓ: Hányszor nyomtál a lemezre?
+  const [secretClicks, setSecretClicks] = useState(0);
+
   useEffect(() => {
     // Könyvtárak betöltése
     loadScript("https://unpkg.com/html5-qrcode").catch(console.error);
@@ -131,7 +134,8 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden font-sans selection:bg-orange-500 selection:text-white">
+    // JAVÍTÁS: h-screen helyett h-[100dvh] a mobil böngésző sávok miatt
+    <div className="h-[100dvh] w-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden font-sans selection:bg-orange-500 selection:text-white touch-none">
       {/* Stílusok */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
@@ -167,12 +171,18 @@ export default function App() {
       {/* --- HOME VIEW --- */}
       {view === "home" && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center z-10 relative h-full">
-          <div className="mb-8 relative">
-            <div className="absolute inset-0 bg-orange-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
-            <div className="relative bg-gradient-to-tr from-gray-800 to-black p-8 rounded-full border border-gray-700 shadow-2xl">
-              <Disc size={64} className="text-orange-500 animate-spin-slow" />
+          {/* TITKOS GOMB (A lemez ikon) */}
+          <button
+            onClick={() => setSecretClicks((prev) => prev + 1)}
+            className="mb-6 relative focus:outline-none active:scale-90 transition-transform duration-100"
+            style={{ WebkitTapHighlightColor: "transparent" }}
+          >
+            <div className="absolute inset-0 bg-orange-500 rounded-full blur-xl opacity-50 animate-pulse pointer-events-none"></div>
+            <div className="relative bg-gradient-to-tr from-gray-800 to-black p-6 rounded-full border border-gray-700 shadow-2xl">
+              <Disc size={56} className="text-orange-500 animate-spin-slow" />
             </div>
-          </div>
+          </button>
+
           <h1 className="text-5xl font-black mb-2 tracking-tighter text-white drop-shadow-lg">
             BELLA<span className="text-orange-500">STER</span>
           </h1>
@@ -199,12 +209,15 @@ export default function App() {
               böngészőben.
             </p>
 
-            <button
-              onClick={() => setView("creator")}
-              className="glass-button w-full text-white font-semibold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide mt-2"
-            >
-              <Printer size={18} /> KÁRTYÁK KÉSZÍTÉSE
-            </button>
+            {/* TITKOS FELTÉTEL: Csak akkor jelenik meg, ha 5-ször rányomtál a lemezre */}
+            {secretClicks >= 5 && (
+              <button
+                onClick={() => setView("creator")}
+                className="glass-button w-full text-white font-semibold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide mt-2 animate-in fade-in slide-in-from-top-4"
+              >
+                <Printer size={18} /> KÁRTYÁK KÉSZÍTÉSE
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -261,7 +274,8 @@ export default function App() {
       {/* --- GAME VIEW --- */}
       {view === "game" && (
         <>
-          <div className="p-4 flex justify-between items-center z-20 w-full max-w-md mx-auto">
+          {/* Header - Fix magasság */}
+          <div className="p-4 flex justify-between items-center z-20 w-full max-w-md mx-auto shrink-0">
             <button
               onClick={() => setView("home")}
               className="glass-button p-2 rounded-full text-white/80 hover:text-white"
@@ -274,9 +288,10 @@ export default function App() {
             <div className="w-10"></div>
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center p-4 w-full max-w-md mx-auto z-10 relative h-full max-h-[85vh]">
+          {/* Main Content - Kitölti a maradék helyet */}
+          <div className="flex-1 flex flex-col items-center justify-between p-4 w-full max-w-md mx-auto z-10 relative overflow-hidden">
             {scannerActive ? (
-              <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
+              <div className="absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
                 <h3 className="text-white text-2xl font-bold mb-8 tracking-tight">
                   KÓD KERESÉSE...
                 </h3>
@@ -302,11 +317,12 @@ export default function App() {
               </div>
             ) : (
               <>
-                <div className="relative w-full h-full max-h-[65vh] bg-[#121212] rounded-[30px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group">
+                {/* Zene lejátszó kártya - Flexibilis méret! (min-h-0 fontos) */}
+                <div className="flex-1 w-full min-h-0 bg-[#121212] rounded-[30px] overflow-hidden shadow-2xl border border-white/5 flex flex-col transition-all duration-500 group relative">
                   {currentTrack ? (
                     <>
-                      {/* SPOTIFY IFRAME */}
-                      <div className="flex-1 relative w-full h-full bg-black">
+                      {/* SPOTIFY IFRAME - Kitölti a rendelkezésre álló helyet */}
+                      <div className="flex-1 relative w-full h-full bg-black min-h-0">
                         <iframe
                           src={`https://open.spotify.com/embed/track/${currentTrack}?utm_source=generator&theme=0`}
                           width="100%"
@@ -339,7 +355,7 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* VEZÉRLŐK */}
+                      {/* VEZÉRLŐK - Fix magasság alul */}
                       <div className="p-4 bg-[#181818] z-30 border-t border-white/5 shrink-0">
                         {!isRevealed ? (
                           <button
@@ -381,7 +397,7 @@ export default function App() {
                   )}
                 </div>
 
-                {/* ÚJ GOMBOK A KÁRTYA ALATT */}
+                {/* ÚJ GOMBOK A KÁRTYA ALATT - Fix méret, nem nyomja össze a kártyát túlságosan */}
                 <div className="w-full mt-4 space-y-2 shrink-0">
                   {!scannerActive && !currentTrack && (
                     <button
